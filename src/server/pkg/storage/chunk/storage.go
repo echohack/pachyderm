@@ -20,16 +20,18 @@ type Storage struct {
 	tracker   tracker.Tracker
 	mdstore   MetadataStore
 
-	defaultChunkTTL time.Duration
+	createOpts CreateOptions
 }
 
 // NewStorage creates a new Storage.
 func NewStorage(objClient obj.Client, mdstore MetadataStore, tracker tracker.Tracker, opts ...StorageOption) *Storage {
 	s := &Storage{
-		objClient:       objClient,
-		mdstore:         mdstore,
-		defaultChunkTTL: defaultChunkTTL,
-		tracker:         tracker,
+		objClient: objClient,
+		mdstore:   mdstore,
+		tracker:   tracker,
+		createOpts: CreateOptions{
+			Compression: CompressionAlgo_GZIP_BEST_SPEED,
+		},
 	}
 	for _, opt := range opts {
 		opt(s)
@@ -49,7 +51,7 @@ func (s *Storage) NewReader(ctx context.Context, dataRefs []*DataRef) *Reader {
 // object storage.
 func (s *Storage) NewWriter(ctx context.Context, tmpID string, cb WriterCallback, opts ...WriterOption) *Writer {
 	client := NewClient(s.objClient, s.mdstore, s.tracker, tmpID)
-	return newWriter(ctx, client, cb, opts...)
+	return newWriter(ctx, client, s.createOpts, cb, opts...)
 }
 
 // List lists all of the chunks in object storage.

@@ -4,7 +4,6 @@ import (
 	"context"
 	fmt "fmt"
 	io "io"
-	"io/ioutil"
 	"path"
 	"strings"
 	"sync"
@@ -55,11 +54,7 @@ func NewClient(objc obj.Client, mdstore MetadataStore, tracker tracker.Tracker, 
 	return c
 }
 
-func (c *Client) Create(ctx context.Context, md Metadata, r io.Reader) (ID, error) {
-	chunkData, err := ioutil.ReadAll(r)
-	if err != nil {
-		return nil, err
-	}
+func (c *Client) Create(ctx context.Context, md Metadata, chunkData []byte) (ID, error) {	
 	chunkID := Hash(chunkData)
 	var pointsTo []string
 	for _, cid := range md.PointsTo {
